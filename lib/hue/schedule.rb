@@ -16,30 +16,39 @@ module Hue
     # Description of the schedule.
     attr_accessor :description
 
-    attr_accessor :command
-
     def initialize(client, bridge, id = nil, data = {})
       @client = client
       @bridge = bridge
       @id = id
-      unpack data
+      unpack_hash data, KEYS_MAP
     end
 
-    def create!(command, time, attributes = {})
-      body = attributes
-      body[:command] = command.to_param
-      body[:localtime] = time
-
+    def create!(command, time)
+      body = {
+        command: command.to_h,
+        localtime: time.iso8691.split('+')[0]
+      }
       uri = URI.parse "http://#{@bridge.ip}/api/#{@client.username}/schedules"
       http = Net::HTTP.new uri.host
       response = http.request_post uri.path, JSON.dump(body)
-      json = JSON(response.body)
+      json = JSON(response.body).first
 
-      @id = json[0]['success']['id']
+      @id = json['success']['id']
+    rescue
+      raise ERROR_MAP[json['error']['type'].to_i]
     end
 
   private
     
+    KEYS_MAP = {
+      :name => :name,
+      :description => :description,
+      :command => :command,
+      :time => :localtime,
+      :status => :status,
+      :auto_delete => :autodelete
+    }
+
     def base_url
       "http://#{bridge.ip}/api/#{@client.username}/schedules/#{id}"
     end

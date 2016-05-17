@@ -9,6 +9,8 @@ module Hue
   class ParameterNotAvailable < Error; end
   class InvalidValueForParameter < Error; end
   class ParameterNotModifiable < Error; end
+  class TooManyItemsInList < Error; end
+  class PortalConnectionRequired < Error; end
   class InternalError < Error; end
   class LinkButtonNotPressed < Error; end
   class ParameterNotModifiableWhileOff < ParameterNotModifiable; end
@@ -29,6 +31,8 @@ module Hue
       6 => Hue::ParameterNotAvailable,
       7 => Hue::InvalidValueForParameter,
       8 => Hue::ParameterNotModifiable,
+     11 => Hue::TooManyItemsInList,
+     12 => Hue::PortalConnectionRequired,
     901 => Hue::InternalError,
     101 => Hue::LinkButtonNotPressed,
     201 => Hue::ParameterNotModifiableWhileOff,
