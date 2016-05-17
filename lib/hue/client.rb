@@ -81,6 +81,11 @@ module Hue
       scenes.select { |s| s.id == id }.first
     end
 
+    def add_schedule(command, time)
+      schedule = Schedule.new(self, bridge)
+      schedule.create!(command, time)
+    end
+
     private
 
     def find_username
