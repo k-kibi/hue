@@ -134,6 +134,14 @@ module Hue
       JSON(response.body)
     end
 
+    def command(attributes)
+      com = Command.new @client, @bridge
+      com.action = "/lights/#{id}/state"
+      com.method = 'PUT'
+      com.body = translate_keys(attributes, STATE_KEYS_MAP)
+      com
+    end
+
     # Refresh the state of the lamp
     def refresh
       json = JSON(Net::HTTP.get(URI.parse(base_url)))
