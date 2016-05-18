@@ -26,7 +26,7 @@ module Hue
     def create!(command, time)
       body = {
         command: command.to_h,
-        localtime: time.iso8691.split('+')[0]
+        localtime: time.iso8601.split('+')[0]
       }
       uri = URI.parse "http://#{@bridge.ip}/api/#{@client.username}/schedules"
       http = Net::HTTP.new uri.host
