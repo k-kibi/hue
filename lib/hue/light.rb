@@ -134,6 +134,9 @@ module Hue
       JSON(response.body)
     end
 
+    # Create Command instance to add schedule.
+    # @param [Hash] attributes
+    # @return [Command]
     def command(attributes)
       com = Command.new @client, @bridge
       com.action = "/lights/#{id}/state"
