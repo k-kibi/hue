@@ -23,7 +23,7 @@ module Hue
     
     def action=(value)
       unless ADDRESS_RANGE.include? "/api/#{@client.username}#{value}".size
-        raise InvalidValueParameter, "length of address must be between #{ADDRESS_RANGE.first} to #{ADDRESS_RANGE.last}"
+        raise InvalidValueForParameter, "length of address must be between #{ADDRESS_RANGE.first} to #{ADDRESS_RANGE.last}"
       end
       @action = value
     end
@@ -38,7 +38,7 @@ module Hue
 
     def body=(value)
       unless BODY_RANGE.include? JSON.dump(value).size
-        raise InvalidValueParameter, "length of body must be between #{BODY_RANGE.first} to #{BODY_RANGE.last}"
+        raise InvalidValueForParameter, "length of body must be between #{BODY_RANGE.first} to #{BODY_RANGE.last}"
       end
       @body = value
     end
