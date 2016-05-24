@@ -1,5 +1,6 @@
 module Hue
   class Command
+    include TranslateKeys
 
     ADDRESS_RANGE = 1..64
     METHODS = %w(POST PUT DELETE)
@@ -16,9 +17,10 @@ module Hue
     # JSON string to be sent to the relevant resource.
     attr_reader :body
 
-    def initialize(client, bridge)
+    def initialize(client, data = {})
       @client = client
-      @bridge = bridge
+
+      unpack_hash data, KEYS_MAP
     end
     
     def action=(value)
@@ -50,5 +52,13 @@ module Hue
         body: body
       }
     end
+
+  private
+
+    KEYS_MAP = {
+      :address => :address,
+      :method => :method,
+      :body => :body
+    }
   end
 end
