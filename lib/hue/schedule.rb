@@ -2,7 +2,6 @@ module Hue
   class Schedule
     include Enumerable
     include TranslateKeys
-    include EditableState
 
     # ID of the schedule.
     attr_reader :id
@@ -16,18 +15,52 @@ module Hue
     # Description of the schedule.
     attr_accessor :description
 
+    # Command to execute when the scheduled event occurs.
+    attr_reader :command
+
+    # Local time when the scheduled event will occur.
+    attr_reader :time
+
+    # Application is only allowed to set “enabled” or “disabled”.
+    # Disabled causes a timer to reset when activated (i.e. stop & reset).
+    # “enabled” when not provided on creation.
+    attr_reader :status
+
+    # If set to true, the schedule will be removed automatically if expired,
+    # if set to false it will be disabled. Default is true. Only visible for
+    # non-recurring schedules.
+    attr_reader :auto_delete
+
+    # When true: Resource is automatically deleted when not referenced anymore
+    # in any resource link. Only on creation of resource.
+    # “false” when omitted.
+    attr_reader :recycle
+
     def initialize(client, bridge, id = nil, data = {})
       @client = client
       @bridge = bridge
       @id = id
-      unpack_hash data, KEYS_MAP
+
+      unpack(data)
     end
 
-    def create!(command, time)
-      body = {
-        command: command.to_h,
-        localtime: time.iso8601.split('+')[0]
-      }
+    def set_state(attributes)
+      unpack(attributes)
+      return if new?
+      body = request_params
+      uri = URI.parse(base_url)
+      http = Net::HTTP.new(uri.host)
+      response = http.request_put(uri.path, JSON.dump(body))
+      JSON(response.body)
+    end
+
+    def refresh
+      json = JSON(Net::HTTP.get(URI.parse(base_url)))
+      unpack(json)
+    end
+
+    def create!
+      body = request_params
       uri = URI.parse "http://#{@bridge.ip}/api/#{@client.username}/schedules"
       http = Net::HTTP.new uri.host
       response = http.request_post uri.path, JSON.dump(body)
@@ -38,19 +71,46 @@ module Hue
       raise ERROR_MAP[json['error']['type'].to_i]
     end
 
+    def new?
+      @id.nil?
+    end
+    
   private
     
-    KEYS_MAP = {
+    SCHEDULE_KEYS_MAP = {
       :name => :name,
       :description => :description,
       :command => :command,
       :time => :localtime,
+      :created_at => :created,
       :status => :status,
-      :auto_delete => :autodelete
+      :auto_delete => :autodelete,
+      :recycle => :recycle
     }
 
+    def unpack(data)
+      unpack_hash(data, SCHEDULE_KEYS_MAP)
+
+      unless new?
+        @command = Command.new(@client, @command)
+      end
+    end
+
     def base_url
-      "http://#{bridge.ip}/api/#{@client.username}/schedules/#{id}"
+      "http://#{@bridge.ip}/api/#{@client.username}/schedules/#{id}"
+    end
+
+    def request_params
+      body = {
+        command: @command.to_h,
+        localtime: @time.iso8601.split('+')[0]
+      }
+      # optional parameters
+      SCHEDULE_KEYS_MAP.reject { |key, value| [:command, :localtime].include? key }.each do |key, value|
+        val = instance_variable_get("@#{key}")
+        body[value] = val unless val.nil?
+      end
+      body
     end
   end
 end
