@@ -81,9 +81,15 @@ module Hue
       scenes.select { |s| s.id == id }.first
     end
 
-    def add_schedule(command, time)
-      schedule = Schedule.new(self, bridge)
-      schedule.create!(command, time)
+    def schedules
+      bridge.schedules
+    end
+
+    def schedule(id = nil)
+      return Schedule.new(self, bridge) if id.nil?
+
+      id = id.to_s
+      schedules.select { |s| s.id == id }.first
     end
 
     private
