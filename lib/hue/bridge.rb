@@ -102,6 +102,14 @@ module Hue
       end
     end
 
+    def schedules
+      @schedules ||= begin
+        json = JSON(Net::HTTP.get(URI.parse("#{base_url}/schedules")))
+        json.map do |id, data|
+          Schedule.new(@client, self, id, data)
+        end
+      end
+    end
   private
 
     KEYS_MAP = {
