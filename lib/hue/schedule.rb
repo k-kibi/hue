@@ -71,6 +71,14 @@ module Hue
       raise ERROR_MAP[json['error']['type'].to_i]
     end
 
+    def destroy!
+      uri = URI.parse(base_url)
+      http = Net::HTTP.new(uri.host)
+      response = http.delete(uri.path)
+      json = JSON(response.body)
+      @id = nil if json[0]['success']
+    end
+
     def new?
       @id.nil?
     end
@@ -101,10 +109,9 @@ module Hue
     end
 
     def request_params
-      body = {
-        command: @command.to_h,
-        localtime: @time.iso8601.split('+')[0]
-      }
+      body = {command: @command, localtime: @time}
+      body[:command] = @command.to_h if @command.is_a?(Command)
+      body[:localtime] = @time.iso8601.split('+')[0] if @time.is_a?(Time)
       # optional parameters
       SCHEDULE_KEYS_MAP.reject { |key, value| [:command, :localtime].include? key }.each do |key, value|
         val = instance_variable_get("@#{key}")
