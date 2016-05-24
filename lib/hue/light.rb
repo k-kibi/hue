@@ -138,7 +138,7 @@ module Hue
     # @param [Hash] attributes
     # @return [Command]
     def command(attributes)
-      com = Command.new @client, @bridge
+      com = Command.new @client
       com.action = "/lights/#{id}/state"
       com.method = 'PUT'
       com.body = translate_keys(attributes, STATE_KEYS_MAP)
