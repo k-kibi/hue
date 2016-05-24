@@ -112,6 +112,17 @@ module Hue
       JSON(response.body)
     end
 
+    # Create Command instance to add schedule.
+    # @param [Hash] attributes
+    # @return [Command]
+    def command(attributes)
+      com = Command.new @client
+      com.action = "/groups/#{id}/action"
+      com.method = 'PUT'
+      com.body = translate_keys(attributes, STATE_KEYS_MAP)
+      com
+    end
+
     def refresh
       json = JSON(Net::HTTP.get(URI.parse(base_url)))
       unpack(json)
