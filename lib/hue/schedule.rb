@@ -19,7 +19,7 @@ module Hue
     attr_reader :command
 
     # Local time when the scheduled event will occur.
-    attr_reader :time
+    attr_reader :localtime
 
     # Application is only allowed to set “enabled” or “disabled”.
     # Disabled causes a timer to reset when activated (i.e. stop & reset).
@@ -45,7 +45,9 @@ module Hue
     end
 
     def set_state(attributes)
-      unpack(attributes)
+      translate_keys(attributes, SCHEDULE_KEYS_MAP).each do |key, value|
+        instance_variable_set("@#{key}", value)
+      end
       return if new?
       body = request_params
       uri = URI.parse(base_url)
@@ -109,9 +111,9 @@ module Hue
     end
 
     def request_params
-      body = {command: @command, localtime: @time}
+      body = {command: @command, localtime: @localtime}
       body[:command] = @command.to_h if @command.is_a?(Command)
-      body[:localtime] = @time.iso8601.split('+')[0] if @time.is_a?(Time)
+      body[:localtime] = @localtime.iso8601.split('+')[0] if @localtime.is_a?(Time)
       # optional parameters
       SCHEDULE_KEYS_MAP.reject { |key, value| [:command, :localtime].include? key }.each do |key, value|
         val = instance_variable_get("@#{key}")
